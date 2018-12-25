@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.container_myroom,MyRoomFragment.getInstance());
         fragmentTransaction.commit();
+
     }
 
 
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
         user = firebaseAuth.getCurrentUser();
-        String userid= user.getUid();
+
         if(user !=null){
             FirebaseDatabase.getInstance().getReference("users")
                     .child(user.getUid())
@@ -72,7 +73,11 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                     .child(user.getUid())
                     .addValueEventListener(this);
 
-
+            String userid= user.getUid();
+            getSharedPreferences("Timi",MODE_PRIVATE)
+                    .edit()
+                    .putString("USERID",userid)
+                    .apply();
 
         }
         else {
@@ -82,11 +87,9 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                             new AuthUI.IdpConfig.EmailBuilder().build(),
                             new AuthUI.IdpConfig.GoogleBuilder().build()
                     )).setIsSmartLockEnabled(false).build(),RC_SIGN_IN);
+
         }
-        getSharedPreferences("Timi",MODE_PRIVATE)
-                .edit()
-                .putString("USERID",userid)
-                .apply();
+
     }
 
     @Override
