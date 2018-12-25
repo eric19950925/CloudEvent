@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.add(R.id.container_myroom,MyRoomFragment.getInstance());
+        fragmentTransaction.add(R.id.container_mytimi,MyTimiFragment.getInstance());
         fragmentTransaction.commit();
 
     }

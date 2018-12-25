@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -52,13 +53,15 @@ private static MyRoomFragment instance;
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 String roomTitle = ed_title.getText().toString();
-                                DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("users")
-                                        .child(userid).child("rooms").push();
+                                DatabaseReference roomRef = FirebaseDatabase.getInstance().getReference("rooms").push();
                                 Room room = new Room();
                                 room.setTitle(roomTitle);
+                                room.setBuilder_id(userid);
                                 roomRef.setValue(room);
                                 String key = roomRef.getKey();
+                                room.setKey(key);
                                 roomRef.child("key").setValue(key);
+
 
                             }
                         }).setNeutralButton("Cancel", null).show();
@@ -68,8 +71,7 @@ private static MyRoomFragment instance;
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.getItemAnimator().setRemoveDuration(1000);
-        Query query = FirebaseDatabase.getInstance().getReference("users")
-                .child(userid).child("rooms").orderByKey();
+        Query query = FirebaseDatabase.getInstance().getReference("rooms").orderByKey();
         FirebaseRecyclerOptions<Room> options = new FirebaseRecyclerOptions.Builder<Room>()
                 .setQuery(query, Room.class).build();
         adapter = new FirebaseRecyclerAdapter<Room, URoomHolder>(options) {
@@ -77,13 +79,42 @@ private static MyRoomFragment instance;
             protected void onBindViewHolder(@NonNull URoomHolder holder, int position, @NonNull final Room model) {
                 String title = model.getTitle();
                 Log.d(TAG, "onBindViewHolder: "+title);
+                final String room_key = model.getKey();
                 holder.title.setText(model.getTitle());
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        Intent into_uroom = new Intent(getContext(),URoomActivity.class);
-//                        into_uroom.putExtra("ROOM_KEY",model.getId());
-//                        startActivity(into_uroom);
+                        Intent into_uroom = new Intent(getContext(),URoomActivity.class);
+                        into_uroom.putExtra("ROOM_KEY",room_key);
+                        startActivity(into_uroom);
+                    }
+                });
+                holder.delete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.AlertDialog.Builder(getContext());
+                        alertDialogBuilder.setTitle("Delete this room?");
+                        alertDialogBuilder
+                                .setMessage("Click yes to delete!")
+                                .setCancelable(false)
+                                .setPositiveButton("Yes",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                DatabaseReference roomRef1 = FirebaseDatabase.getInstance().getReference("rooms");
+
+                                                roomRef1.child(model.getKey()).removeValue();
+                                            }
+                                        })
+
+                                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+
+                                        dialog.cancel();
+                                    }
+                                });
+
+                        android.support.v7.app.AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
                     }
                 });
             }
@@ -102,10 +133,11 @@ private static MyRoomFragment instance;
 
     public class URoomHolder extends RecyclerView.ViewHolder {
         TextView title;
-
+        ImageView delete;
         public URoomHolder(@NonNull View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.tv_name);
+            delete = itemView.findViewById(R.id.del);
         }
     }
 
